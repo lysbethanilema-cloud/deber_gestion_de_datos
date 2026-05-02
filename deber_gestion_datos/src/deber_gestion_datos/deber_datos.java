@@ -64,6 +64,7 @@ public class deber_datos extends JFrame {
 	private JLabel lblCorreo;
 	private javax.swing.border.TitledBorder bordeDatos;
 	private javax.swing.border.TitledBorder bordeContactos;
+	private JProgressBar barraEstadisticas;
 
 
 	/**
@@ -422,7 +423,7 @@ public class deber_datos extends JFrame {
 		lblTotalContactos.setBounds(30, 50, 250, 25);
 		panelEstadisticas.add(lblTotalContactos);
 
-		lblCargando = new JLabel("Cargando datos...");
+		lblCargando = new JLabel("");
 		lblCargando.setBounds(30, 140, 250, 25);
 		panelEstadisticas.add(lblCargando);
 
@@ -430,22 +431,22 @@ public class deber_datos extends JFrame {
 		btnSimularCarga.setBounds(250, 300, 150, 30);
 		panelEstadisticas.add(btnSimularCarga);
 
-		JProgressBar barraEstadisticas = new JProgressBar();
+		barraEstadisticas = new JProgressBar();
 		barraEstadisticas.setBounds(30, 220, 550, 40);
 		barraEstadisticas.setStringPainted(true);
 		barraEstadisticas.setValue(100);
-		barraEstadisticas.setString("¡Listo!");
+		barraEstadisticas.setString("");
 		panelEstadisticas.add(barraEstadisticas);
 
 		btnSimularCarga.addActionListener(e -> {
 		    barraEstadisticas.setValue(0);
-		    barraEstadisticas.setString("Cargando...");
+		    barraEstadisticas.setString(textos.getString("cargando"));
 		    
 		    for (int i = 0; i <= 100; i++) {
 		        barraEstadisticas.setValue(i);
 		    }
 		    
-		    barraEstadisticas.setString("¡Listo!");
+		    barraEstadisticas.setString(textos.getString("listo"));
 		});
 
 		tabbedPane.addTab("Estadísticas", panelEstadisticas);
@@ -458,7 +459,9 @@ public class deber_datos extends JFrame {
 	    int total = modelo.getRowCount();
 
 	    if (lblTotalContactos != null) {
-	        lblTotalContactos.setText("Total de contactos: " + total);
+	    	lblTotalContactos.setText(textos.getString("total") + " " + total);
+	    	
+	        
 	    }
 	}
 	
@@ -489,6 +492,11 @@ public class deber_datos extends JFrame {
 	    bordeDatos.setTitle(textos.getString("borde_datos"));
 	    bordeContactos.setTitle(textos.getString("borde_contactos"));
 	    repaint();
+	    
+	    lblCargando.setText(textos.getString("cargando"));
+	    btnSimularCarga.setText(textos.getString("simular"));
+	    barraEstadisticas.setString(textos.getString("listo"));
+	    
 	  
 	    actualizarEstadisticas();
 
