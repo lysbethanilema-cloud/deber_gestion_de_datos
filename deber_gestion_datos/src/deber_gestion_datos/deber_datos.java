@@ -2,6 +2,7 @@ package deber_gestion_datos;
 
 import java.awt.EventQueue;
 
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -29,7 +30,8 @@ import java.util.ResourceBundle;
 import java.util.Locale;
 import java.awt.Color;
 import java.awt.Font;
-
+import javax.swing.ImageIcon;
+import java.awt.Image;
 
 
 public class deber_datos extends JFrame {
@@ -60,7 +62,9 @@ public class deber_datos extends JFrame {
 	private JLabel lblNombre;
 	private JLabel lblTelefono;
 	private JLabel lblCorreo;
-	
+	private javax.swing.border.TitledBorder bordeDatos;
+	private javax.swing.border.TitledBorder bordeContactos;
+
 
 	/**
 	 * Launch the application.
@@ -103,14 +107,23 @@ public class deber_datos extends JFrame {
 		JPanel panelContactos = new JPanel();
 		panelContactos.setLayout(new java.awt.BorderLayout());
 		
-		JPanel panelSuperior = new JPanel(new java.awt.FlowLayout());
-		panelSuperior.setBackground(new Color(200,230,240));
+		
 		
 		lblContactos = new JLabel("Información de los contactos");
 		
 		itemEliminar = new JMenuItem("Eliminar contacto");
-
+		//AGREGAR ICONO DE ELIMINAR
+		ImageIcon iconEliminar = new ImageIcon(getClass().getResource("/icons/eliminar.png"));
+		Image imgEliminar = iconEliminar.getImage().getScaledInstance(18, 18, java.awt.Image.SCALE_SMOOTH);
+		itemEliminar.setIcon(new ImageIcon(imgEliminar));
+		
 		lblBuscar = new JLabel("Buscar");
+		//AGREGAR ICONO DE BUSCAR
+		ImageIcon iconBuscarOriginal = new ImageIcon(getClass().getResource("/icons/buscar.png"));
+		Image imgBuscar = iconBuscarOriginal.getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH);
+		ImageIcon iconBuscar = new ImageIcon(imgBuscar);
+		
+		lblBuscar.setIcon(iconBuscar);
 		
 		txtBuscar = new JTextField(10);
 		
@@ -125,37 +138,27 @@ public class deber_datos extends JFrame {
 		
 		btnGuardar = new JButton("Guardar contacto");
 		btnExportar = new JButton("Exportar CSV");
+		// ICONOS AGREGADOS DE INTERNET
+		ImageIcon iconGuardar = new ImageIcon(getClass().getResource("/icons/guardar.png"));
+		Image imgGuardar = iconGuardar.getImage().getScaledInstance(18, 18, java.awt.Image.SCALE_SMOOTH);
+		btnGuardar.setIcon(new ImageIcon(imgGuardar));
+		
+		
+		ImageIcon iconExportar = new ImageIcon(getClass().getResource("/icons/exportar.png"));
+		Image imgExportar = iconExportar.getImage().getScaledInstance(18, 18, java.awt.Image.SCALE_SMOOTH);
+		btnExportar.setIcon(new ImageIcon(imgExportar));
 		
 		btnGuardar.setBackground(new Color(70, 130, 180)); 
 		btnGuardar.setForeground(Color.RED);
 
 		btnExportar.setBackground(new Color(100, 149, 237));
-		btnExportar.setForeground(Color.GREEN);
+		btnExportar.setForeground(Color.BLUE);
 		
 		cmbIdioma = new JComboBox<>();
 		cmbIdioma.addItem("Español");
 		cmbIdioma.addItem("English");
 		cmbIdioma.addItem("Français");
 		
-		panelSuperior.add(lblContactos);
-		
-		panelSuperior.add(lblBuscar);
-		panelSuperior.add(txtBuscar);
-
-		panelSuperior.add(lblNombre);
-		panelSuperior.add(txtNombre);
-
-		panelSuperior.add(lblTelefono);
-		panelSuperior.add(txtTelefono);
-
-		panelSuperior.add(lblCorreo);
-		panelSuperior.add(txtCorreo);
-
-		panelSuperior.add(btnGuardar);
-		panelSuperior.add(btnExportar);
-		panelSuperior.add(cmbIdioma);
-		
-	    panelContactos.add(panelSuperior, java.awt.BorderLayout.NORTH);
 
 	    cmbIdioma.addActionListener(e -> {
 	        String idioma = (String) cmbIdioma.getSelectedItem();
@@ -173,8 +176,14 @@ public class deber_datos extends JFrame {
 		// CREAR TABLA
 		
 		tabla = new JTable(modelo);
+		
+		tabla.getColumnModel().getColumn(0).setPreferredWidth(30);  
+		tabla.getColumnModel().getColumn(1).setPreferredWidth(140);  
+		tabla.getColumnModel().getColumn(2).setPreferredWidth(120);  
+		tabla.getColumnModel().getColumn(3).setPreferredWidth(250); 
+		
+		
 		lblContactos.setFont(fuenteTitulo);
-
 		lblBuscar.setFont(fuenteGeneral);
 		lblNombre.setFont(fuenteGeneral);
 		lblTelefono.setFont(fuenteGeneral);
@@ -197,7 +206,84 @@ public class deber_datos extends JFrame {
 		
 		// SCROLL
 		JScrollPane scroll = new JScrollPane(tabla);
-		panelContactos.add(scroll, java.awt.BorderLayout.CENTER);
+		// PANEL SUPERIOR AZUL
+		JPanel panelTitulo = new JPanel(new java.awt.BorderLayout());
+		panelTitulo.setBackground(new Color(44, 62, 80));
+
+		lblContactos.setForeground(Color.WHITE);
+		lblContactos.setText("Gestión de Contactos");
+		lblContactos.setFont(new Font("Segoe UI", Font.BOLD, 16));
+
+		JPanel panelIdioma = new JPanel(new java.awt.FlowLayout());
+		panelIdioma.setBackground(new Color(44, 62, 80));
+
+		JLabel lblIdioma = new JLabel("Idioma:");
+		lblIdioma.setForeground(Color.WHITE);
+
+		panelIdioma.add(lblIdioma);
+		panelIdioma.add(cmbIdioma);
+
+		panelTitulo.add(lblContactos, java.awt.BorderLayout.WEST);
+		panelTitulo.add(panelIdioma, java.awt.BorderLayout.EAST);
+
+		panelContactos.add(panelTitulo, java.awt.BorderLayout.NORTH);
+
+
+		// PANEL CENTRAL
+		JPanel panelCentro = new JPanel(new java.awt.GridLayout(1, 2, 10, 10));
+		panelCentro.setBackground(new Color(236, 240, 241));
+		panelCentro.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+		JPanel panelIzquierdo = new JPanel(null);
+		bordeDatos = javax.swing.BorderFactory.createTitledBorder("Datos del Contacto");
+		panelIzquierdo.setBorder(bordeDatos);
+		panelIzquierdo.setBackground(new Color(245, 245, 245));
+
+		lblNombre.setBounds(30, 80, 80, 25);
+		txtNombre.setBounds(110, 80, 180, 25);
+
+		lblTelefono.setBounds(30, 130, 80, 25);
+		txtTelefono.setBounds(110, 130, 180, 25);
+
+		lblCorreo.setBounds(30, 180, 80, 25);
+		txtCorreo.setBounds(110, 180, 180, 25);
+
+		panelIzquierdo.add(lblNombre);
+		panelIzquierdo.add(txtNombre);
+		panelIzquierdo.add(lblTelefono);
+		panelIzquierdo.add(txtTelefono);
+		panelIzquierdo.add(lblCorreo);
+		panelIzquierdo.add(txtCorreo);
+
+		JPanel panelDerecho = new JPanel(new java.awt.BorderLayout());
+		bordeContactos = javax.swing.BorderFactory.createTitledBorder("Contactos");
+		panelDerecho.setBorder(bordeContactos);
+		panelDerecho.setBackground(new Color(245, 245, 245));
+
+		JPanel panelBuscar = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+		panelBuscar.setBackground(new Color(245, 245, 245));
+
+		panelBuscar.add(lblBuscar);
+		panelBuscar.add(txtBuscar);
+
+		panelDerecho.add(panelBuscar, java.awt.BorderLayout.NORTH);
+		panelDerecho.add(scroll, java.awt.BorderLayout.CENTER);
+		
+		panelCentro.add(panelIzquierdo);
+		panelCentro.add(panelDerecho);
+
+		panelContactos.add(panelCentro, java.awt.BorderLayout.CENTER);
+
+
+		// PANEL INFERIOR DE BOTONES
+		JPanel panelBotones = new JPanel();
+		panelBotones.setBackground(new Color(220, 220, 220));
+
+		panelBotones.add(btnGuardar);
+		panelBotones.add(btnExportar);
+
+		panelContactos.add(panelBotones, java.awt.BorderLayout.SOUTH);
+	
 		
 		// MENU
 		JPopupMenu menu = new JPopupMenu();
@@ -227,7 +313,6 @@ public class deber_datos extends JFrame {
 		
 		barra = new JProgressBar();
 		barra.setStringPainted(true);
-		panelContactos.add(barra, java.awt.BorderLayout.SOUTH);
 		
 		// DATOS
 		
@@ -240,7 +325,7 @@ public class deber_datos extends JFrame {
 			String telefono = txtTelefono.getText().trim();
 			String correo = txtCorreo.getText().trim();
 			if (nombre.isEmpty() || telefono.isEmpty() || correo.isEmpty()) {
-				JOptionPane.showMessageDialog(null, "Debe llenar todos los campos");
+				JOptionPane.showMessageDialog(null, textos.getString("msg_campos"));
 				return;
 			}
 			int id = modelo.getRowCount() + 1;
@@ -253,7 +338,8 @@ public class deber_datos extends JFrame {
 
 			actualizarEstadisticas();
 		
-	      JOptionPane.showMessageDialog(null, "Contacto registrado correctamente");
+			JOptionPane.showMessageDialog(null, textos.getString("msg_registrado"));
+	      
 		});
 		
 		
@@ -321,7 +407,7 @@ public class deber_datos extends JFrame {
 				writer.flush();
 				writer.close();
 
-				JOptionPane.showMessageDialog(null, "Archivo CSV exportado correctamente");
+				JOptionPane.showMessageDialog(null, textos.getString("msg_exportado"));
 			} catch (IOException ex) {
 				JOptionPane.showMessageDialog(null, "Error al exportar el archivo");
 			}
@@ -387,18 +473,23 @@ public class deber_datos extends JFrame {
 	    }
 
 	    setTitle(textos.getString("titulo"));
-	    lblContactos.setText("👤 " + textos.getString("contactos"));
+	  
 	    lblNombre.setText(textos.getString("nombre"));
 	    lblTelefono.setText(textos.getString("telefono"));
 	    lblCorreo.setText(textos.getString("correo"));
 	    btnGuardar.setText(textos.getString("guardar"));
-	    lblBuscar.setText("🔍 " + textos.getString("buscar"));
-	    btnExportar.setText("📄 " + textos.getString("exportar"));
-	    itemEliminar.setText("🗑️ " + textos.getString("eliminar"));
+	    
+	    lblContactos.setText(textos.getString("contactos"));
+	    lblBuscar.setText(textos.getString("buscar"));
+	    btnExportar.setText(textos.getString("exportar"));
+	    itemEliminar.setText(textos.getString("eliminar")); 
+	    
 	    tabbedPane.setTitleAt(0, textos.getString("tab_contactos"));
 	    tabbedPane.setTitleAt(1, textos.getString("tab_estadisticas"));
-	    
-
+	    bordeDatos.setTitle(textos.getString("borde_datos"));
+	    bordeContactos.setTitle(textos.getString("borde_contactos"));
+	    repaint();
+	  
 	    actualizarEstadisticas();
 
 	}
