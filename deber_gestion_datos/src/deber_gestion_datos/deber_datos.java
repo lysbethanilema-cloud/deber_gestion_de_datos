@@ -51,8 +51,6 @@ public class deber_datos extends JFrame {
 	private JMenuItem itemEliminar;
 	
 
-	
-   
 
 	/**
 	 * Launch the application.
@@ -80,46 +78,44 @@ public class deber_datos extends JFrame {
 		
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		contentPane.setLayout(null);
+		contentPane.setLayout(new java.awt.BorderLayout());
 		setContentPane(contentPane);
 		
 		tabbedPane = new JTabbedPane();
-		tabbedPane.setBounds(20, 20, 640, 400);
-		contentPane.add(tabbedPane);
+		contentPane.add(tabbedPane, java.awt.BorderLayout.CENTER);
 		
 		JPanel panelContactos = new JPanel();
-		panelContactos.setLayout(null);
+		panelContactos.setLayout(new java.awt.BorderLayout());
+		
+		JPanel panelSuperior = new JPanel(new java.awt.FlowLayout());
 		
 		lblContactos = new JLabel("Información de los contactos");
-		lblContactos.setBounds(20, 10, 250, 25);
-		panelContactos.add(lblContactos);
-		
 		
 		itemEliminar = new JMenuItem("Eliminar contacto");
 
 		lblBuscar = new JLabel("Buscar");
-		lblBuscar.setBounds(20, 40, 80, 25);
-		panelContactos.add(lblBuscar);
 		
-		txtBuscar = new JTextField();
-		txtBuscar.setBounds(80, 40, 200, 25);
-		panelContactos.add(txtBuscar);
-
-		btnExportar = new JButton("Exportar CVS");
-		btnExportar.setBounds(300, 40, 130, 25);
-		panelContactos.add(btnExportar);
+		txtBuscar = new JTextField(15);
+		
+		btnExportar = new JButton("Exportar CSV");
 		
 		cmbIdioma = new JComboBox<>();
 		cmbIdioma.addItem("Español");
 		cmbIdioma.addItem("English");
 		cmbIdioma.addItem("Français");
-		cmbIdioma.setBounds(450, 40, 130, 25);
-		panelContactos.add(cmbIdioma);
 		
-		cmbIdioma.addActionListener(e -> {
-		    String idioma = (String) cmbIdioma.getSelectedItem();
-		    cambiarIdioma(idioma);
-		});
+		panelSuperior.add(lblContactos);
+	    panelSuperior.add(lblBuscar);
+	    panelSuperior.add(txtBuscar);
+	    panelSuperior.add(btnExportar);
+	    panelSuperior.add(cmbIdioma);
+	 	
+	    panelContactos.add(panelSuperior, java.awt.BorderLayout.NORTH);
+
+	    cmbIdioma.addActionListener(e -> {
+	        String idioma = (String) cmbIdioma.getSelectedItem();
+	        cambiarIdioma(idioma);
+	    });
 		
 
 		// CREAR MODELO DE TABLA
@@ -137,8 +133,7 @@ public class deber_datos extends JFrame {
 		
 		// SCROLL
 		JScrollPane scroll = new JScrollPane(tabla);
-		scroll.setBounds(20, 80, 580, 220);
-		panelContactos.add(scroll);
+		panelContactos.add(scroll, java.awt.BorderLayout.CENTER);
 		
 		// MENU
 		JPopupMenu menu = new JPopupMenu();
@@ -167,9 +162,8 @@ public class deber_datos extends JFrame {
 		// BARRA DE PROGRESO
 		
 		barra = new JProgressBar();
-		barra.setBounds(20, 310, 580, 25);
 		barra.setStringPainted(true);
-		panelContactos.add(barra);
+		panelContactos.add(barra, java.awt.BorderLayout.SOUTH);
 		
 		// DATOS
 		
@@ -285,6 +279,7 @@ public class deber_datos extends JFrame {
 
 		tabbedPane.addTab("Estadísticas", panelEstadisticas);
 
+		cambiarIdioma("Español");
 		actualizarEstadisticas();
 	}
 
@@ -304,18 +299,18 @@ public class deber_datos extends JFrame {
 	        textos = ResourceBundle.getBundle("messages", Locale.forLanguageTag("en"));
 	    } else {
 	        textos = ResourceBundle.getBundle("messages", Locale.forLanguageTag("fr"));
-	        
-	        tabbedPane.setTitleAt(0, textos.getString("tab_contactos"));
-	        tabbedPane.setTitleAt(1, textos.getString("tab_estadisticas"));    
-	   
-	        
 	    }
 
 	    setTitle(textos.getString("titulo"));
-	    lblContactos.setText(textos.getString("contactos"));
-	    lblBuscar.setText(textos.getString("buscar"));
-	    btnExportar.setText(textos.getString("exportar"));
-	    itemEliminar.setText(textos.getString("eliminar"));
-	  
+	    lblContactos.setText("👤 " + textos.getString("contactos"));
+	    lblBuscar.setText("🔍 " + textos.getString("buscar"));
+	    btnExportar.setText("📄 " + textos.getString("exportar"));
+	    itemEliminar.setText("🗑️ " + textos.getString("eliminar"));
+	    tabbedPane.setTitleAt(0, textos.getString("tab_contactos"));
+	    tabbedPane.setTitleAt(1, textos.getString("tab_estadisticas"));
+	    
+
+	    actualizarEstadisticas();
+
 	}
 }
