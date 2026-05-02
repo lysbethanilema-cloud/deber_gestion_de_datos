@@ -24,6 +24,9 @@ import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.JComboBox;
+import java.util.ResourceBundle;
+import java.util.Locale;
 
 
 public class deber_datos extends JFrame {
@@ -37,8 +40,19 @@ public class deber_datos extends JFrame {
 	private TableRowSorter<DefaultTableModel> sorter;
 	private JButton btnExportar;
 	private JProgressBar barra;
+	private JLabel lblTotalContactos;
+	
+	private JComboBox<String> cmbIdioma;
+	private ResourceBundle textos;
+	private JLabel lblContactos;
+	private JLabel lblBuscar;
+	private JLabel lblCargando;
+	private JButton btnSimularCarga;
+	private JMenuItem itemEliminar;
+	
 
-
+	
+   
 
 	/**
 	 * Launch the application.
@@ -76,11 +90,14 @@ public class deber_datos extends JFrame {
 		JPanel panelContactos = new JPanel();
 		panelContactos.setLayout(null);
 		
-		JLabel lblContactos = new JLabel("Información de los contactos");
+		lblContactos = new JLabel("Información de los contactos");
 		lblContactos.setBounds(20, 10, 250, 25);
 		panelContactos.add(lblContactos);
 		
-		JLabel lblBuscar = new JLabel("Buscar");
+		
+		itemEliminar = new JMenuItem("Eliminar contacto");
+
+		lblBuscar = new JLabel("Buscar");
 		lblBuscar.setBounds(20, 40, 80, 25);
 		panelContactos.add(lblBuscar);
 		
@@ -91,6 +108,19 @@ public class deber_datos extends JFrame {
 		btnExportar = new JButton("Exportar CVS");
 		btnExportar.setBounds(300, 40, 130, 25);
 		panelContactos.add(btnExportar);
+		
+		cmbIdioma = new JComboBox<>();
+		cmbIdioma.addItem("Español");
+		cmbIdioma.addItem("English");
+		cmbIdioma.addItem("Français");
+		cmbIdioma.setBounds(450, 40, 130, 25);
+		panelContactos.add(cmbIdioma);
+		
+		cmbIdioma.addActionListener(e -> {
+		    String idioma = (String) cmbIdioma.getSelectedItem();
+		    cambiarIdioma(idioma);
+		});
+		
 
 		// CREAR MODELO DE TABLA
 		modelo = new DefaultTableModel();
@@ -100,9 +130,7 @@ public class deber_datos extends JFrame {
 		modelo.addColumn("Correo");
 
 		// CREAR TABLA
-		tabla = new JTable(modelo);
-		sorter = new TableRowSorter<>(modelo);
-		tabla.setRowSorter(sorter);
+		
 		tabla = new JTable(modelo);
 		sorter = new TableRowSorter<>(modelo);
 		tabla.setRowSorter(sorter);
@@ -114,8 +142,9 @@ public class deber_datos extends JFrame {
 		
 		// MENU
 		JPopupMenu menu = new JPopupMenu();
-		JMenuItem itemEliminar = new JMenuItem("Eliminar contacto");
 		menu.add(itemEliminar);
+		
+		
 		
 		
 		// ACCIÓN ELIMINAR
@@ -127,9 +156,10 @@ public class deber_datos extends JFrame {
 			if (filaVista >= 0) {
 				int filaModelo = tabla.convertRowIndexToModel(filaVista);
 				modelo.removeRow(filaModelo);
-				JOptionPane.showMessageDialog(null, "CONTACTO ELIMINADO");
+				actualizarEstadisticas();
+				JOptionPane.showMessageDialog(null, textos.getString( "msg_eliminado"));
 			} else {
-				JOptionPane.showMessageDialog(null, "SELECCIONE UN CONTACTO");
+				JOptionPane.showMessageDialog(null, textos.getString("msg_seleccione"));
 			}
 		});
 		
@@ -223,13 +253,69 @@ public class deber_datos extends JFrame {
 		JPanel panelEstadisticas = new JPanel();
 		panelEstadisticas.setLayout(null);
 
-		JLabel lblEstadisticas = new JLabel("Estadísticas");
-		lblEstadisticas.setBounds(20, 20, 250, 25);
-		panelEstadisticas.add(lblEstadisticas);
-		
-		tabbedPane.addTab("Estadísticas", panelEstadisticas);
+		lblTotalContactos = new JLabel("Total de contactos: 0");
+		lblTotalContactos.setBounds(30, 50, 250, 25);
+		panelEstadisticas.add(lblTotalContactos);
+
+		lblCargando = new JLabel("Cargando datos...");
+		lblCargando.setBounds(30, 140, 250, 25);
+		panelEstadisticas.add(lblCargando);
+
+		btnSimularCarga = new JButton("Simular carga");
+		btnSimularCarga.setBounds(250, 300, 150, 30);
+		panelEstadisticas.add(btnSimularCarga);
+
+		JProgressBar barraEstadisticas = new JProgressBar();
+		barraEstadisticas.setBounds(30, 220, 550, 40);
+		barraEstadisticas.setStringPainted(true);
+		barraEstadisticas.setValue(100);
+		barraEstadisticas.setString("¡Listo!");
+		panelEstadisticas.add(barraEstadisticas);
+
+		btnSimularCarga.addActionListener(e -> {
+		    barraEstadisticas.setValue(0);
+		    barraEstadisticas.setString("Cargando...");
+		    
+		    for (int i = 0; i <= 100; i++) {
+		        barraEstadisticas.setValue(i);
 		    }
-	 }
+		    
+		    barraEstadisticas.setString("¡Listo!");
+		});
 
+		tabbedPane.addTab("Estadísticas", panelEstadisticas);
 
+		actualizarEstadisticas();
+	}
+
+	private void actualizarEstadisticas() {
+	    int total = modelo.getRowCount();
+
+	    if (lblTotalContactos != null) {
+	        lblTotalContactos.setText("Total de contactos: " + total);
+	    }
+	}
 	
+	private void cambiarIdioma(String idioma) {
+
+	    if (idioma.equals("Español")) {
+	        textos = ResourceBundle.getBundle("messages", Locale.forLanguageTag("es"));
+	    } else if (idioma.equals("English")) {
+	        textos = ResourceBundle.getBundle("messages", Locale.forLanguageTag("en"));
+	    } else {
+	        textos = ResourceBundle.getBundle("messages", Locale.forLanguageTag("fr"));
+	        
+	        tabbedPane.setTitleAt(0, textos.getString("tab_contactos"));
+	        tabbedPane.setTitleAt(1, textos.getString("tab_estadisticas"));    
+	   
+	        
+	    }
+
+	    setTitle(textos.getString("titulo"));
+	    lblContactos.setText(textos.getString("contactos"));
+	    lblBuscar.setText(textos.getString("buscar"));
+	    btnExportar.setText(textos.getString("exportar"));
+	    itemEliminar.setText(textos.getString("eliminar"));
+	  
+	}
+}
