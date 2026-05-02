@@ -27,6 +27,9 @@ import java.awt.event.MouseEvent;
 import javax.swing.JComboBox;
 import java.util.ResourceBundle;
 import java.util.Locale;
+import java.awt.Color;
+import java.awt.Font;
+
 
 
 public class deber_datos extends JFrame {
@@ -87,7 +90,13 @@ public class deber_datos extends JFrame {
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new java.awt.BorderLayout());
 		setContentPane(contentPane);
+		// AGREGAR FUENTES
+		Font fuenteGeneral = new Font("Segoe UI", Font.PLAIN,12);
+		Font fuenteTitulo = new Font("Segoe UI", Font.BOLD,16);
+		Font fuenteBoton = new Font("Segoe UI", Font.BOLD, 12);
 		
+		
+		contentPane.setBackground(Color.BLUE);
 		tabbedPane = new JTabbedPane();
 		contentPane.add(tabbedPane, java.awt.BorderLayout.CENTER);
 		
@@ -95,6 +104,7 @@ public class deber_datos extends JFrame {
 		panelContactos.setLayout(new java.awt.BorderLayout());
 		
 		JPanel panelSuperior = new JPanel(new java.awt.FlowLayout());
+		panelSuperior.setBackground(new Color(200,230,240));
 		
 		lblContactos = new JLabel("Información de los contactos");
 		
@@ -105,19 +115,22 @@ public class deber_datos extends JFrame {
 		txtBuscar = new JTextField(10);
 		
 		lblNombre = new JLabel("Nombre");
-		txtNombre = new JTextField(15);
+		txtNombre = new JTextField(12);
 		
 		lblTelefono = new JLabel("Teléfono");
-		txtTelefono = new JTextField(15);
+		txtTelefono = new JTextField(12);
 		
 		lblCorreo = new JLabel("Correo");
-		txtCorreo = new JTextField(10);
+		txtCorreo = new JTextField(12);
 		
 		btnGuardar = new JButton("Guardar contacto");
-		
-		
-		
 		btnExportar = new JButton("Exportar CSV");
+		
+		btnGuardar.setBackground(new Color(70, 130, 180)); 
+		btnGuardar.setForeground(Color.RED);
+
+		btnExportar.setBackground(new Color(100, 149, 237));
+		btnExportar.setForeground(Color.GREEN);
 		
 		cmbIdioma = new JComboBox<>();
 		cmbIdioma.addItem("Español");
@@ -160,6 +173,25 @@ public class deber_datos extends JFrame {
 		// CREAR TABLA
 		
 		tabla = new JTable(modelo);
+		lblContactos.setFont(fuenteTitulo);
+
+		lblBuscar.setFont(fuenteGeneral);
+		lblNombre.setFont(fuenteGeneral);
+		lblTelefono.setFont(fuenteGeneral);
+		lblCorreo.setFont(fuenteGeneral);
+
+		txtBuscar.setFont(fuenteGeneral);
+		txtNombre.setFont(fuenteGeneral);
+		txtTelefono.setFont(fuenteGeneral);
+		txtCorreo.setFont(fuenteGeneral);
+
+		btnGuardar.setFont(fuenteBoton);
+		btnExportar.setFont(fuenteBoton);
+
+		tabla.setFont(fuenteGeneral);
+		tabla.setRowHeight(22);
+		tabla.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
+		
 		sorter = new TableRowSorter<>(modelo);
 		tabla.setRowSorter(sorter);
 		
@@ -356,6 +388,10 @@ public class deber_datos extends JFrame {
 
 	    setTitle(textos.getString("titulo"));
 	    lblContactos.setText("👤 " + textos.getString("contactos"));
+	    lblNombre.setText(textos.getString("nombre"));
+	    lblTelefono.setText(textos.getString("telefono"));
+	    lblCorreo.setText(textos.getString("correo"));
+	    btnGuardar.setText(textos.getString("guardar"));
 	    lblBuscar.setText("🔍 " + textos.getString("buscar"));
 	    btnExportar.setText("📄 " + textos.getString("exportar"));
 	    itemEliminar.setText("🗑️ " + textos.getString("eliminar"));
