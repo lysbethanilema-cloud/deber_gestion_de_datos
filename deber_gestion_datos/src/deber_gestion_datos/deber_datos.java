@@ -50,7 +50,14 @@ public class deber_datos extends JFrame {
 	private JButton btnSimularCarga;
 	private JMenuItem itemEliminar;
 	
-
+	private JTextField txtNombre;
+	private JTextField txtTelefono;
+	private JTextField txtCorreo;
+	private JButton btnGuardar;
+	private JLabel lblNombre;
+	private JLabel lblTelefono;
+	private JLabel lblCorreo;
+	
 
 	/**
 	 * Launch the application.
@@ -74,7 +81,7 @@ public class deber_datos extends JFrame {
 	public deber_datos() {
 		setTitle("Gestión de datos");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 700, 500);
+		setBounds(100, 100, 1200, 550);
 		
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -95,7 +102,20 @@ public class deber_datos extends JFrame {
 
 		lblBuscar = new JLabel("Buscar");
 		
-		txtBuscar = new JTextField(15);
+		txtBuscar = new JTextField(10);
+		
+		lblNombre = new JLabel("Nombre");
+		txtNombre = new JTextField(15);
+		
+		lblTelefono = new JLabel("Teléfono");
+		txtTelefono = new JTextField(15);
+		
+		lblCorreo = new JLabel("Correo");
+		txtCorreo = new JTextField(10);
+		
+		btnGuardar = new JButton("Guardar contacto");
+		
+		
 		
 		btnExportar = new JButton("Exportar CSV");
 		
@@ -105,11 +125,23 @@ public class deber_datos extends JFrame {
 		cmbIdioma.addItem("Français");
 		
 		panelSuperior.add(lblContactos);
-	    panelSuperior.add(lblBuscar);
-	    panelSuperior.add(txtBuscar);
-	    panelSuperior.add(btnExportar);
-	    panelSuperior.add(cmbIdioma);
-	 	
+		
+		panelSuperior.add(lblBuscar);
+		panelSuperior.add(txtBuscar);
+
+		panelSuperior.add(lblNombre);
+		panelSuperior.add(txtNombre);
+
+		panelSuperior.add(lblTelefono);
+		panelSuperior.add(txtTelefono);
+
+		panelSuperior.add(lblCorreo);
+		panelSuperior.add(txtCorreo);
+
+		panelSuperior.add(btnGuardar);
+		panelSuperior.add(btnExportar);
+		panelSuperior.add(cmbIdioma);
+		
 	    panelContactos.add(panelSuperior, java.awt.BorderLayout.NORTH);
 
 	    cmbIdioma.addActionListener(e -> {
@@ -170,6 +202,27 @@ public class deber_datos extends JFrame {
 		modelo.addRow(new Object[] {1, "Elly", "0982171575", "elly@gmail.com"});
 		modelo.addRow(new Object[] {2, "Ana", "0994200199", "ana1982@gmail.com"});
 		modelo.addRow(new Object[] {3, "Jaime", "0981837484", "jaime49@hotmail.com"});
+		
+		btnGuardar.addActionListener(e -> {
+			String nombre = txtNombre.getText().trim();
+			String telefono = txtTelefono.getText().trim();
+			String correo = txtCorreo.getText().trim();
+			if (nombre.isEmpty() || telefono.isEmpty() || correo.isEmpty()) {
+				JOptionPane.showMessageDialog(null, "Debe llenar todos los campos");
+				return;
+			}
+			int id = modelo.getRowCount() + 1;
+
+			modelo.addRow(new Object[] {id, nombre, telefono, correo});
+
+			txtNombre.setText("");
+			txtTelefono.setText("");
+			txtCorreo.setText("");
+
+			actualizarEstadisticas();
+		
+	      JOptionPane.showMessageDialog(null, "Contacto registrado correctamente");
+		});
 		
 		
 		//SELECCIONAR FILA Y MOSTRAR MENU
