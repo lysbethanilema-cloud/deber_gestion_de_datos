@@ -1,8 +1,6 @@
 package deber_gestion_datos;
 
 import java.awt.EventQueue;
-
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -19,7 +17,11 @@ import java.awt.event.KeyEvent;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import java.io.FileWriter;
-import java.io.IOException;
+import javax.swing.SwingWorker;
+import javax.swing.SwingUtilities;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
 import javax.swing.JProgressBar;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
@@ -27,7 +29,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JComboBox;
 import java.util.ResourceBundle;
-import java.util.Locale;
 import java.awt.Color;
 import java.awt.Font;
 import javax.swing.ImageIcon;
@@ -65,11 +66,11 @@ public class deber_datos extends JFrame {
 	private javax.swing.border.TitledBorder bordeDatos;
 	private javax.swing.border.TitledBorder bordeContactos;
 	private JProgressBar barraEstadisticas;
+	private final Object bloqueoContactos = new Object();
+	private final ReentrantLock bloqueoArchivo = new ReentrantLock();
+	private final ExecutorService executor = Executors.newFixedThreadPool(3);
+	
 
-
-	/**
-	 * Launch the application.
-	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -83,9 +84,6 @@ public class deber_datos extends JFrame {
 		});
 	}
 
-	/**
-	 * Create the frame.
-	 */
 	public deber_datos() {
 		setTitle("Gestión de datos");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -107,8 +105,6 @@ public class deber_datos extends JFrame {
 		
 		JPanel panelContactos = new JPanel();
 		panelContactos.setLayout(new java.awt.BorderLayout());
-		
-		
 		
 		lblContactos = new JLabel("Información de los contactos");
 		
@@ -162,8 +158,8 @@ public class deber_datos extends JFrame {
 		
 
 	    cmbIdioma.addActionListener(e -> {
-	        String idioma = (String) cmbIdioma.getSelectedItem();
-	        cambiarIdioma(idioma);
+	    	String idioma = ((String) cmbIdioma.getSelectedItem()).trim();
+	    	cambiarIdioma(idioma);
 	    });
 		
 
@@ -290,9 +286,6 @@ public class deber_datos extends JFrame {
 		JPopupMenu menu = new JPopupMenu();
 		menu.add(itemEliminar);
 		
-		
-		
-		
 		// ACCIÓN ELIMINAR
 		
 		tabla.setComponentPopupMenu(menu);
@@ -325,24 +318,66 @@ public class deber_datos extends JFrame {
 			String nombre = txtNombre.getText().trim();
 			String telefono = txtTelefono.getText().trim();
 			String correo = txtCorreo.getText().trim();
-			if (nombre.isEmpty() || telefono.isEmpty() || correo.isEmpty()) {
-				JOptionPane.showMessageDialog(null, textos.getString("msg_campos"));
-				return;
+			if (nombre.isEmpty() || telefono.isEmpty() || correo.isEmpty()) {JOptionPane.showMessageDialog(null, textos.getString("msg_campos"));return;
 			}
-			int id = modelo.getRowCount() + 1;
+			
+			btnGuardar.setEnabled(false);
+			SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+				@Override
+				
+				protected Boolean doInBackground() throws Exception {
+					// VALIDACION EN SEGUNDO PLANO
+					Thread.sleep(500); 
+					
+					synchronized (bloqueoContactos) {
+						for (int i = 0; i < modelo.getRowCount(); i++) {
+							String telefonoExistente = modelo.getValueAt(i, 2).toString();
+							String correoExistente = modelo.getValueAt(i, 3).toString();
+							
+							if (telefonoExistente.equalsIgnoreCase(telefono)||correoExistente.equalsIgnoreCase(correo)) {
+								return true;
+								
+							}
+						}
+						
+					}
+					
+					return false;		
+				}
+				
+				@Override
+				
+				protected void done() {
+					try {
+						boolean existe = get();
 
-			modelo.addRow(new Object[] {id, nombre, telefono, correo});
+						if (existe) {
+							JOptionPane.showMessageDialog(null,textos.getString("msg_existente"));
+						} else {
+							synchronized (bloqueoContactos) {
+								int id = modelo.getRowCount() + 1;
+								modelo.addRow(new Object[] {id, nombre, telefono, correo});
+							}
 
-			txtNombre.setText("");
-			txtTelefono.setText("");
-			txtCorreo.setText("");
+							txtNombre.setText("");
+							txtTelefono.setText("");
+							txtCorreo.setText("");
 
-			actualizarEstadisticas();
-		
-			JOptionPane.showMessageDialog(null, textos.getString("msg_registrado"));
-	      
+							actualizarEstadisticas();
+							mostrarNotificacion(textos.getString("msg_registrado"));
+						}
+
+					} catch (Exception ex) {
+						JOptionPane.showMessageDialog(null,textos.getString("msg_error"));
+					} finally {
+						btnGuardar.setEnabled(true);
+					}
+				}
+			};
+
+			worker.execute();
 		});
-		
+				
 		
 		//SELECCIONAR FILA Y MOSTRAR MENU
 		
@@ -364,8 +399,6 @@ public class deber_datos extends JFrame {
 			}
 		});
 		
-		
-
 		new Thread(() -> {
 			for (int i = 0; i <= 100; i++) {
 				try {
@@ -384,34 +417,64 @@ public class deber_datos extends JFrame {
 		public void keyReleased(KeyEvent e) {
 			String texto = txtBuscar.getText();
 			
-			if (texto.trim().isEmpty()) {
-				sorter.setRowFilter(null);
-			} else {
-				sorter.setRowFilter(RowFilter.regexFilter("(?i)" + texto));
-			}
+			SwingWorker<Void, Void> workerBusqueda = new SwingWorker<Void, Void>() {
+				@Override
+				protected Void doInBackground() throws Exception {
+					Thread.sleep(300);
+					return null;
+				}
+				@Override
+				protected void done() {
+					if(texto.trim().isEmpty()) {
+						sorter.setRowFilter(null);
+					} else {
+						sorter.setRowFilter(RowFilter.regexFilter("(?i)" + texto));
+					}
+				}
+			};
+			workerBusqueda.execute();
+			
 		}
-	});
+		});
 		
 		btnExportar.addActionListener(evt -> {
-			try {
-				FileWriter writer = new FileWriter("contactos.csv");
-
-				writer.append("ID,Nombre,Teléfono,Correo\n");
-
-				for (int i = 0; i < modelo.getRowCount(); i++) {
-					writer.append(modelo.getValueAt(i, 0).toString()).append(",");
-					writer.append(modelo.getValueAt(i, 1).toString()).append(",");
-					writer.append(modelo.getValueAt(i, 2).toString()).append(",");
-					writer.append(modelo.getValueAt(i, 3).toString()).append("\n");
+			btnExportar.setEnabled(false);
+			SwingWorker<Void, Void>workerExportar = new SwingWorker<Void, Void>() {
+				@Override
+				protected Void doInBackground() throws Exception {
+					bloqueoArchivo.lock();
+					try (FileWriter writer = new FileWriter("contactos.csv")) {
+						writer.append("ID;Nombre;Telefono;Correo\n");
+						
+						synchronized(bloqueoContactos) {
+							for (int i = 0; i < modelo.getRowCount(); i++) {
+								writer.append(modelo.getValueAt(i, 0).toString()).append(";");
+								writer.append(modelo.getValueAt(i, 1).toString()).append(";");
+								writer.append(modelo.getValueAt(i, 2).toString()).append(";");
+								writer.append(modelo.getValueAt(i, 3).toString()).append("\n");
+								
+							}
+						}
+						// SIMULACION DE EXPORTACION
+						Thread.sleep(700);
+						
+					} finally {
+						bloqueoArchivo.unlock();
+						
+					}
+					return null;
+					
 				}
-
-				writer.flush();
-				writer.close();
-
-				JOptionPane.showMessageDialog(null, textos.getString("msg_exportado"));
-			} catch (IOException ex) {
-				JOptionPane.showMessageDialog(null, "Error al exportar el archivo");
-			}
+				
+				@Override
+				protected void done() {
+					btnExportar.setEnabled(true);
+					mostrarNotificacion(textos.getString("msg_exportado"));
+				}
+				
+			};
+			executor.submit(workerExportar);
+			
 		});
 
 		tabbedPane.addTab("Contactos", panelContactos);
@@ -439,16 +502,43 @@ public class deber_datos extends JFrame {
 		panelEstadisticas.add(barraEstadisticas);
 
 		btnSimularCarga.addActionListener(e -> {
-		    barraEstadisticas.setValue(0);
-		    barraEstadisticas.setString(textos.getString("cargando"));
-		    
-		    for (int i = 0; i <= 100; i++) {
-		        barraEstadisticas.setValue(i);
-		    }
-		    
-		    barraEstadisticas.setString(textos.getString("listo"));
-		});
+			btnSimularCarga.setEnabled(false);
+			barraEstadisticas.setValue(0);
+			barraEstadisticas.setString("0%");
+			SwingWorker<Void, Integer> workerCarga = new SwingWorker<Void, Integer>() {
+			@Override
+			protected Void doInBackground() throws Exception {
+				for (int i = 0; i <= 100; i++) {
+					Thread.sleep(100);
+					publish(i);
+				}
+				return null;
+			}
 
+			@Override
+			protected void process(java.util.List<Integer> chunks) {
+
+				int valor = chunks.get(chunks.size() - 1);
+
+				barraEstadisticas.setValue(valor);
+				barraEstadisticas.setString(textos.getString("cargando") + " " + valor + "%");
+			}
+
+			@Override
+			protected void done() {
+
+				barraEstadisticas.setString(textos.getString("listo"));
+
+				SwingUtilities.invokeLater(() -> {
+					JOptionPane.showMessageDialog(null,textos.getString("proceso_completado"));
+				});
+
+				btnSimularCarga.setEnabled(true);
+			}
+		};
+		
+		workerCarga.execute();
+	});
 		tabbedPane.addTab("Estadísticas", panelEstadisticas);
 
 		cambiarIdioma("Español");
@@ -459,46 +549,59 @@ public class deber_datos extends JFrame {
 	    int total = modelo.getRowCount();
 
 	    if (lblTotalContactos != null) {
-	    	lblTotalContactos.setText(textos.getString("total") + " " + total);
-	    	
-	        
+	    	lblTotalContactos.setText(textos.getString("total") + ": " + total);
+	    	      
 	    }
 	}
 	
 	private void cambiarIdioma(String idioma) {
+	    ResourceBundle.clearCache();
 
 	    if (idioma.equals("Español")) {
-	        textos = ResourceBundle.getBundle("messages", Locale.forLanguageTag("es"));
+	        textos = ResourceBundle.getBundle("messages_es");
 	    } else if (idioma.equals("English")) {
-	        textos = ResourceBundle.getBundle("messages", Locale.forLanguageTag("en"));
-	    } else {
-	        textos = ResourceBundle.getBundle("messages", Locale.forLanguageTag("fr"));
+	        textos = ResourceBundle.getBundle("messages_en");
+	    } else if (idioma.equals("Français")) {
+	        textos = ResourceBundle.getBundle("messages_fr");
 	    }
 
 	    setTitle(textos.getString("titulo"));
-	  
+
 	    lblNombre.setText(textos.getString("nombre"));
 	    lblTelefono.setText(textos.getString("telefono"));
 	    lblCorreo.setText(textos.getString("correo"));
 	    btnGuardar.setText(textos.getString("guardar"));
-	    
+
 	    lblContactos.setText(textos.getString("contactos"));
 	    lblBuscar.setText(textos.getString("buscar"));
 	    btnExportar.setText(textos.getString("exportar"));
-	    itemEliminar.setText(textos.getString("eliminar")); 
-	    
+	    itemEliminar.setText(textos.getString("eliminar"));
+
 	    tabbedPane.setTitleAt(0, textos.getString("tab_contactos"));
 	    tabbedPane.setTitleAt(1, textos.getString("tab_estadisticas"));
+
 	    bordeDatos.setTitle(textos.getString("borde_datos"));
 	    bordeContactos.setTitle(textos.getString("borde_contactos"));
-	    repaint();
-	    
+
+	    tabla.getColumnModel().getColumn(0).setHeaderValue("ID");
+	    tabla.getColumnModel().getColumn(1).setHeaderValue(textos.getString("nombre"));
+	    tabla.getColumnModel().getColumn(2).setHeaderValue(textos.getString("telefono"));
+	    tabla.getColumnModel().getColumn(3).setHeaderValue(textos.getString("correo"));
+	    tabla.getTableHeader().repaint();
+
 	    lblCargando.setText(textos.getString("cargando"));
 	    btnSimularCarga.setText(textos.getString("simular"));
 	    barraEstadisticas.setString(textos.getString("listo"));
-	    
-	  
+
 	    actualizarEstadisticas();
 
+	    revalidate();
+	    repaint();
+	}
+	
+	private void mostrarNotificacion(String mensaje) {
+		SwingUtilities.invokeLater(() -> {
+			JOptionPane.showMessageDialog(null, mensaje);
+		});
 	}
 }
